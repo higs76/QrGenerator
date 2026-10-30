@@ -1,0 +1,12 @@
+<!-- Réglages communs à tous les projets de la solution (lu automatiquement par MSBuild). -->
+<Project>
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+    <Authors>Higs76</Authors>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Assemblies de référence .NET Framework (remplace le pack de ciblage) : utilisé au build seulement. -->
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
+  </ItemGroup>
+</Project>
