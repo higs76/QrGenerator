@@ -11,14 +11,15 @@ namespace QrGenerator.Rendu
         {
             int n = modules.GetLength(0);
             var inv = CultureInfo.InvariantCulture;
-            double echelle = (double)(o.Taille - 2 * o.Marge) / n;
+            var g = new Geometrie(n, o);
+            double echelle = (double)g.Largeur / n;
 
             var svg = new StringBuilder();
             svg.AppendFormat(inv,
                 "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"{0}\" height=\"{0}\" viewBox=\"0 0 {0} {0}\" shape-rendering=\"crispEdges\">",
                 o.Taille);
             svg.AppendFormat(inv, "<rect width=\"{0}\" height=\"{0}\" fill=\"{1}\"/>", o.Taille, Hex(o.CouleurFond));
-            svg.AppendFormat(inv, "<path transform=\"translate({0} {0}) scale({1:0.######})\" fill=\"{2}\" d=\"", o.Marge, echelle, Hex(o.Couleur));
+            svg.AppendFormat(inv, "<path transform=\"translate({0} {0}) scale({1:0.######})\" fill=\"{2}\" d=\"", g.Debut, echelle, Hex(o.Couleur));
 
             // Une ligne de modules foncés consécutifs = un seul rectangle.
             for (int y = 0; y < n; y++)

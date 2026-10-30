@@ -5,21 +5,21 @@ using System.Runtime.InteropServices;
 
 namespace QrGenerator.Rendu
 {
-    /// <summary>Rendu PNG / GIF / JPEG, à la taille exacte demandée (modules de largeur fractionnaire, comme qrserver).</summary>
+    /// <summary>Rendu PNG / GIF / JPEG, à la taille exacte demandée.</summary>
     static class BitmapRenderer
     {
         public static byte[] Dessiner(bool[,] modules, QrOptions o)
         {
             int n = modules.GetLength(0);
             int taille = o.Taille;
+            var g = new Geometrie(n, o);
 
             // Pour chaque pixel d'une ligne (ou colonne) : index du module couvert, -1 dans la marge.
             var index = new int[taille];
-            int utile = taille - 2 * o.Marge;
             for (int p = 0; p < taille; p++)
             {
-                int q = p - o.Marge;
-                index[p] = q < 0 || q >= utile ? -1 : (int)((long)q * n / utile);
+                int q = p - g.Debut;
+                index[p] = q < 0 || q >= g.Largeur ? -1 : (int)((long)q * n / g.Largeur);
             }
 
             // Image indexée 1 bit : palette [fond, couleur], donc ni dégradé ni tramage.

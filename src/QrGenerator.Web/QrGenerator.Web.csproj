@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Site IIS : le dossier du projet est la racine du site, les DLL vont directement dans bin\ (comme un site WebForms). -->
+  <PropertyGroup>
+    <TargetFramework>net40</TargetFramework>
+    <OutputPath>bin\</OutputPath>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="System.Web" />
+    <ProjectReference Include="..\QrGenerator\QrGenerator.csproj" />
+  </ItemGroup>
+
+</Project>

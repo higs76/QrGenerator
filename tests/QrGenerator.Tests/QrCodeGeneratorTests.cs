@@ -66,7 +66,7 @@ namespace QrGenerator.Tests
         {
             var rouge = Color.FromArgb(255, 0, 0);
             var bleu = Color.FromArgb(0, 0, 255);
-            var gif = QrCodeGenerator.Generer("Example", new QrOptions { Format = QrFormat.Gif, Couleur = rouge, CouleurFond = bleu, Marge = 10 });
+            var gif = QrCodeGenerator.Generer("Example", new QrOptions { Format = QrFormat.Gif, Taille = 230, Couleur = rouge, CouleurFond = bleu, Marge = 10 });
             using (var bmp = Ouvrir(gif))
             {
                 Assert.Equal(bleu.ToArgb(), bmp.GetPixel(0, 0).ToArgb());       // marge
@@ -75,16 +75,42 @@ namespace QrGenerator.Tests
         }
 
         [Fact]
-        public void La_marge_est_en_pixels_comme_qrserver()
+        public void Les_modules_sont_entiers_et_le_code_centre_dans_la_marge()
         {
+            // 150 - 2×20 = 110 px pour 21 modules : modules de 5 px (105 px), 5 px restants répartis 2 + 3.
             var png = QrCodeGenerator.Generer("Example", new QrOptions { Taille = 150, Marge = 20 });
             using (var bmp = Ouvrir(png))
             {
-                Assert.Equal(Color.White.ToArgb(), bmp.GetPixel(19, 19).ToArgb());
-                Assert.Equal(Color.Black.ToArgb(), bmp.GetPixel(20, 20).ToArgb());
-                Assert.Equal(Color.Black.ToArgb(), bmp.GetPixel(129, 20).ToArgb());
-                Assert.Equal(Color.White.ToArgb(), bmp.GetPixel(130, 20).ToArgb());
+                Assert.Equal(Color.White.ToArgb(), bmp.GetPixel(21, 22).ToArgb());
+                Assert.Equal(Color.Black.ToArgb(), bmp.GetPixel(22, 22).ToArgb());
+                Assert.Equal(Color.Black.ToArgb(), bmp.GetPixel(126, 22).ToArgb());
+                Assert.Equal(Color.White.ToArgb(), bmp.GetPixel(127, 22).ToArgb());
             }
+        }
+
+        [Fact]
+        public void Le_code_est_etire_si_un_module_ferait_moins_d_un_pixel()
+        {
+            var png = QrCodeGenerator.Generer("Example", new QrOptions { Taille = 15, Marge = 0 });
+            using (var bmp = Ouvrir(png))
+            {
+                Assert.Equal(Color.Black.ToArgb(), bmp.GetPixel(0, 0).ToArgb());
+                Assert.Equal(Color.Black.ToArgb(), bmp.GetPixel(14, 0).ToArgb());
+            }
+        }
+
+        [Theory]
+        [InlineData(2000, 600)]
+        [InlineData(2000, 900)]
+        [InlineData(2000, 1000)]
+        [InlineData(2500, 600)]
+        [InlineData(2500, 900)]
+        [InlineData(2500, 1000)]
+        public void Un_gros_code_est_relu_quelle_que_soit_la_taille(int longueur, int taille)
+        {
+            var texte = new string('x', longueur);
+            var png = QrCodeGenerator.Generer(texte, new QrOptions { Taille = taille, ZoneSilence = 4 });
+            Assert.Equal(texte, Lire(png));
         }
 
         [Fact]
@@ -93,7 +119,20 @@ namespace QrGenerator.Tests
             var svg = Encoding.UTF8.GetString(QrCodeGenerator.Generer("Example", new QrOptions { Format = QrFormat.Svg, Taille = 150, Marge = 10 }));
             Assert.StartsWith("<svg ", svg);
             Assert.Contains("width=\"150\" height=\"150\"", svg);
-            Assert.Contains("scale(6.190476)", svg);   // 130 px / 21 modules, avec un point décimal même en culture française
+            Assert.Contains("translate(12 12) scale(6)", svg);   // 130 px / 21 modules → 6 px, 4 px restants répartis
+        }
+
+        [Fact]
+        public void Le_svg_etire_utilise_un_point_decimal_meme_en_culture_francaise()
+        {
+            var culture = System.Threading.Thread.CurrentThread.CurrentCulture;
+            System.Threading.Thread.CurrentThread.CurrentCulture = new System.Globalization.CultureInfo("fr-FR");
+            try
+            {
+                var svg = Encoding.UTF8.GetString(QrCodeGenerator.Generer("Example", new QrOptions { Format = QrFormat.Svg, Taille = 15, Marge = 0 }));
+                Assert.Contains("scale(0.714286)", svg);   // 15 px / 21 modules
+            }
+            finally { System.Threading.Thread.CurrentThread.CurrentCulture = culture; }
         }
 
         [Fact]
